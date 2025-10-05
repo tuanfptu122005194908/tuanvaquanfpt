@@ -146,7 +146,45 @@ app.get("/api/admin/stats", checkAdminAuth, (req, res) => {
     });
   }
 });
+// Xóa đơn hàng (admin only)
+app.delete("/api/admin/orders/:id", checkAdminAuth, (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
 
+    const orderIndex = orders.findIndex((o) => o.id === orderId);
+
+    if (orderIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy đơn hàng!",
+      });
+    }
+
+    // Lưu thông tin đơn hàng trước khi xóa (để log)
+    const deletedOrder = orders[orderIndex];
+
+    // Xóa đơn hàng
+    orders.splice(orderIndex, 1);
+
+    console.log(`🗑️ Đơn hàng #${orderId} đã bị xóa bởi admin`);
+
+    res.json({
+      success: true,
+      message: "Xóa đơn hàng thành công!",
+      deletedOrder: {
+        id: deletedOrder.id,
+        customerName: deletedOrder.customerInfo.name,
+        total: deletedOrder.total,
+      },
+    });
+  } catch (error) {
+    console.error("Delete order error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi xóa đơn hàng!",
+    });
+  }
+});
 // Lấy tất cả đơn hàng (admin only)
 app.get("/api/admin/orders", checkAdminAuth, (req, res) => {
   try {
